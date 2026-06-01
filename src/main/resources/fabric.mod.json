@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "whatishedoing",
+  "version": "${version}",
+  "name": "What Is He Doing?",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/whatishedoing/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "me.omrih.whatishedoing.client.WhatIsHeDoingClient"
+    ],
+    "main": [
+      "me.omrih.whatishedoing.Whatishedoing"
+    ],
+    "modmenu": [
+      "me.omrih.whatishedoing.client.config.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "whatishedoing.mixins.json",
+    {
+      "config": "whatishedoing.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
