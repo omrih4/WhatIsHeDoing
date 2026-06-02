@@ -14,6 +14,7 @@ Currently, the following gameplay events are sent to discord:
 - Server Leave
 - World Join
 - World Leave
+- Take screenshot & send (keybind)
 
 More events are planned for later updates, in addition to an addon API.
 
