@@ -5,14 +5,18 @@ import me.omrih.whatishedoing.client.discord.DiscordWebhook;
 import me.omrih.whatishedoing.client.discord.Embed;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class EventHandler {
     private final List<DiscordWebhook> webhooks = new ArrayList<>();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public EventHandler() {
         for (String url : WhatIsHeDoingClient.getConfig().webhooks) {
@@ -26,11 +30,13 @@ public class EventHandler {
         embed.setDescription(WhatIsHeDoingClient.getConfig().name + " opened Minecraft");
         embed.setTimestamp(Instant.now().toString());
         for (DiscordWebhook webhook : webhooks) {
-            try {
-                webhook.execute(embed);
-            } catch (Exception e) {
-                WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
-            }
+            executorService.execute(() -> {
+                try {
+                    webhook.execute(embed);
+                } catch (Exception e) {
+                    WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
+                }
+            });
         }
     }
 
@@ -40,11 +46,13 @@ public class EventHandler {
         embed.setDescription(WhatIsHeDoingClient.getConfig().name + " closed Minecraft");
         embed.setTimestamp(Instant.now().toString());
         for (DiscordWebhook webhook : webhooks) {
-            try {
-                webhook.execute(embed);
-            } catch (Exception e) {
-                WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
-            }
+            executorService.execute(() -> {
+                try {
+                    webhook.execute(embed);
+                } catch (Exception e) {
+                    WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
+                }
+            });
         }
     }
 
@@ -64,11 +72,13 @@ public class EventHandler {
         embed.setDescription(WhatIsHeDoingClient.getConfig().name + " joined **" + name + "**");
         embed.setTimestamp(Instant.now().toString());
         for (DiscordWebhook webhook : webhooks) {
-            try {
-                webhook.execute(embed);
-            } catch (Exception e) {
-                WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
-            }
+            executorService.execute(() -> {
+                try {
+                    webhook.execute(embed);
+                } catch (Exception e) {
+                    WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
+                }
+            });
         }
     }
 
@@ -88,12 +98,32 @@ public class EventHandler {
         embed.setDescription(WhatIsHeDoingClient.getConfig().name + " left **" + name + "**");
         embed.setTimestamp(Instant.now().toString());
         for (DiscordWebhook webhook : webhooks) {
-            try {
-                webhook.execute(embed);
-            } catch (Exception e) {
-                WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
-            }
+            executorService.execute(() -> {
+                try {
+                    webhook.execute(embed);
+                } catch (Exception e) {
+                    WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
+                }
+            });
         }
+    }
+
+    public void onTakeScreenshot() {
+        Screenshot.takeScreenshot(Minecraft.getInstance().getMainRenderTarget(), (screenshot) -> {
+            Embed embed = new Embed("Took Screenshot", 0x3498DB);
+            embed.setDescription(WhatIsHeDoingClient.getConfig().name + " took a screenshot");
+            embed.setTimestamp(Instant.now().toString());
+            embed.setAttachment(screenshot);
+            for (DiscordWebhook webhook : webhooks) {
+                executorService.execute(() -> {
+                    try {
+                        webhook.execute(embed);
+                    } catch (Exception e) {
+                        WhatIsHeDoingClient.getLogger().error("failed to execute webhook", e);
+                    }
+                });
+            }
+        });
     }
 
     private void reloadWebhooks() {

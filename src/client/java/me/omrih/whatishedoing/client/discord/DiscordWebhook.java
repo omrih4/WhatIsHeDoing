@@ -3,13 +3,20 @@ package me.omrih.whatishedoing.client.discord;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import me.omrih.whatishedoing.client.WhatIsHeDoingClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 
-import javax.net.ssl.HttpsURLConnection;
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * Used to do webhook stuff easily
@@ -17,7 +24,7 @@ import java.net.URL;
  * Taken from <a href="https://gist.github.com/k3kdude/fba6f6b37594eae3d6f9475330733bdb">GitHub</a>
  */
 public class DiscordWebhook {
-
+    private static final CloseableHttpClient httpClient = HttpClients.createDefault();
     private static final Gson GSON = new Gson();
     private final String url;
     private String content;
@@ -50,18 +57,24 @@ public class DiscordWebhook {
     }
 
     public void execute(Embed embed) throws IOException, URISyntaxException {
-        JsonObject json = new JsonObject();
+        JsonObject jsonPayload = new JsonObject();
+
+        HttpPost executeWebhook = new HttpPost(new URI(this.url));
+        executeWebhook.addHeader("User-Agent", "Java-DiscordWebhookBuilder-WhatIsHeDoing");
 
         if (embed == null) {
             if (this.content == null) {
                 throw new IllegalArgumentException("Content must be set");
             }
-            json.addProperty("content", this.content);
+            jsonPayload.addProperty("content", this.content);
         } else {
             JsonObject embedJson = new JsonObject();
             embedJson.addProperty("title", embed.getTitle());
             embedJson.addProperty("color", embed.getColor());
 
+            if (embed.getAttachment() != null) {
+                embed.setImageUrl("attachment://attachment.png");
+            }
             if (embed.getDescription() != null) {
                 embedJson.addProperty("description", embed.getDescription());
             }
@@ -70,6 +83,11 @@ public class DiscordWebhook {
                 thumbnail.addProperty("url", embed.getThumbnailUrl());
                 embedJson.add("thumbnail", thumbnail);
             }
+            if (embed.getImageUrl() != null) {
+                JsonObject image = new JsonObject();
+                image.addProperty("url", embed.getImageUrl());
+                embedJson.add("image", image);
+            }
             if (embed.getTimestamp() != null) {
                 embedJson.addProperty("timestamp", embed.getTimestamp());
             }
@@ -77,27 +95,28 @@ public class DiscordWebhook {
             JsonArray embeds = new JsonArray();
             embeds.add(embedJson);
 
-            json.add("embeds", embeds);
+            jsonPayload.add("embeds", embeds);
         }
-        json.addProperty("username", this.username);
-        json.addProperty("avatar_url", this.avatarUrl);
-        json.addProperty("tts", false);
+        jsonPayload.addProperty("username", this.username);
+        jsonPayload.addProperty("avatar_url", this.avatarUrl);
+        jsonPayload.addProperty("tts", false);
 
-        URL url = new URI(this.url).toURL();
-        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-        connection.addRequestProperty("Content-Type", "application/json");
-        connection.addRequestProperty("User-Agent", "Java-DiscordWebhookBuilder-LegitiDevs");
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
+        if (embed != null && embed.getAttachment() != null) {
+            File image = File.createTempFile("attachment-", ".png");
 
-        OutputStream stream = connection.getOutputStream();
-        stream.write(GSON.toJson(json).getBytes());
-        stream.flush();
-        stream.close();
+            embed.getAttachment().writeToFile(image);
 
-        connection
-                .getInputStream()
-                .close(); // I'm not sure why but it doesn't work without getting the InputStream
-        connection.disconnect();
+            HttpEntity requestEntity = MultipartEntityBuilder.create()
+                    .addBinaryBody("file1", image, ContentType.IMAGE_PNG, "attachment.png")
+                    .addTextBody("payload_json", GSON.toJson(jsonPayload), ContentType.APPLICATION_JSON)
+                    .build();
+            executeWebhook.setEntity(requestEntity);
+        } else {
+            executeWebhook.addHeader("Content-Type", "application/json");
+            StringEntity requestEntity = new StringEntity(GSON.toJson(jsonPayload), ContentType.APPLICATION_JSON);
+            executeWebhook.setEntity(requestEntity);
+        }
+
+        CloseableHttpResponse response = httpClient.execute(executeWebhook);
     }
 }

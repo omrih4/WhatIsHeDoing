@@ -1,4 +1,6 @@
 {
+  "key.category.whatishedoing.keymappings": "What Is He Doing?",
+  "key.whatishedoing.send_screenshot": "Take screenshot and send screenshot",
   "text.autoconfig.whatishedoing.option.webhooks": "Webhooks",
   "text.autoconfig.whatishedoing.option.name": "Name"
 }

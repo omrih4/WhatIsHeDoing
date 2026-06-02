@@ -1,10 +1,14 @@
 package me.omrih.whatishedoing.client.discord;
 
+import com.mojang.blaze3d.platform.NativeImage;
+
 public class Embed {
     private final String title;
     private final Integer color;
     private String description;
     private String thumbnailUrl;
+    private String imageUrl;
+    private NativeImage attachment;
     private String timestamp;
 
     public Embed(String title, Integer color) {
@@ -42,5 +46,21 @@ public class Embed {
 
     public String getTimestamp() {
         return timestamp;
+    }
+
+    public NativeImage getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(NativeImage attachment) {
+        this.attachment = attachment;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

@@ -39,6 +39,8 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
     modApi "com.terraformersmc:modmenu:16.0.1"
+
+    include(implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1"))
 }
 
 processResources {
