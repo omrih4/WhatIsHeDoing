@@ -25,6 +25,8 @@ loom {
 repositories {
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.terraformersmc.com/releases/" }
+    maven { url "https://www.jitpack.io" }
+    maven { url "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
 }
 
 dependencies {
@@ -35,6 +37,8 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+    include(modImplementation("com.github.omrih4:LegitiLib:v1.1.1"))
+
     modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
@@ -43,6 +47,8 @@ dependencies {
     include(implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1"))
     include(implementation("org.apache.httpcomponents.core5:httpcore5:5.4"))
     include(implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4"))
+
+    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.1.1")
 }
 
 processResources {
