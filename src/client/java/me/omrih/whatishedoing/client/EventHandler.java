@@ -3,21 +3,22 @@ package me.omrih.whatishedoing.client;
 import io.netty.channel.local.LocalAddress;
 import me.omrih.legiti.LegitiLib;
 import me.omrih.legiti.client.LegitiLibClient;
-import me.omrih.legiti.client.api.event.WorldChangedEvent;
+import me.omrih.legiti.client.api.event.WorldJoinedEvent;
+import me.omrih.legiti.client.api.event.WorldLeftEvent;
 import me.omrih.whatishedoing.client.discord.DiscordWebhook;
 import me.omrih.whatishedoing.client.discord.Embed;
 import me.omrih.whatishedoing.client.integration.Integration;
 import me.omrih.whatishedoing.client.integration.LegitimooseIntegration;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.net.InetSocketAddress;
@@ -29,9 +30,9 @@ import java.util.concurrent.Executors;
 
 public class EventHandler {
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
-            ResourceLocation.fromNamespaceAndPath("whatishedoing", "keymappings")
+            Identifier.fromNamespaceAndPath("whatishedoing", "keymappings")
     );
-    private static final KeyMapping sendScreenshotKey = KeyBindingHelper.registerKeyBinding(
+    private static final KeyMapping sendScreenshotKey = KeyMappingHelper.registerKeyMapping(
             new KeyMapping(
                     "key.whatishedoing.send_screenshot",
                     GLFW.GLFW_KEY_F9,
@@ -61,7 +62,8 @@ public class EventHandler {
         ClientLifecycleEvents.CLIENT_STOPPING.register((client) -> onExitGame());
 
         // LegitimooseIntegration
-        WorldChangedEvent.EVENT.register((world) -> ((LegitimooseIntegration) integrations.getFirst()).onWorldChanged(world));
+        WorldJoinedEvent.EVENT.register((world) -> ((LegitimooseIntegration) integrations.getFirst()).onWorldJoined(world));
+        WorldLeftEvent.EVENT.register((world) -> ((LegitimooseIntegration) integrations.getFirst()).onWorldLeft(world));
     }
 
     public static EventHandler getInstance() {
@@ -145,7 +147,7 @@ public class EventHandler {
     }
 
     private void onTakeScreenshot() {
-        Screenshot.takeScreenshot(Minecraft.getInstance().getMainRenderTarget(), (screenshot) -> {
+        Screenshot.takeScreenshot(Minecraft.getInstance().gameRenderer.mainRenderTarget(), (screenshot) -> {
             Embed embed = new Embed("Took Screenshot", 0x3498DB);
             embed.setDescription(WhatIsHeDoingClient.getConfig().name + " took a screenshot");
             embed.setTimestamp(Instant.now().toString());

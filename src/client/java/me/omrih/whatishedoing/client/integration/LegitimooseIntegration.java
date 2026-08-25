@@ -22,9 +22,16 @@ public class LegitimooseIntegration implements Integration {
         return true;
     }
 
-    public void onWorldChanged(World world) {
+    public void onWorldJoined(World world) {
         Embed embed = new Embed("Joined a legitimoose world", 0x8A5F41);
-        embed.setDescription(WhatIsHeDoingClient.getConfig().name + " joined **" + world.getName() + "**" + " by " + "**" + world.getOwner() + "**");
+        embed.setDescription(WhatIsHeDoingClient.getConfig().name + " joined **" + world.name() + "**" + " by " + "**" + world.owner() + "**");
+        embed.setTimestamp(Instant.now().toString());
+        EventHandler.getInstance().sendWebhook(embed);
+    }
+
+    public void onWorldLeft(World world) {
+        Embed embed = new Embed("Left a legitimoose world", 0xED4245);
+        embed.setDescription(WhatIsHeDoingClient.getConfig().name + " left **" + world.name() + "**" + " by " + "**" + world.owner() + "**");
         embed.setTimestamp(Instant.now().toString());
         EventHandler.getInstance().sendWebhook(embed);
     }
